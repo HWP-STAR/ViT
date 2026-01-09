@@ -18,11 +18,11 @@ def mnist_loader(size=32,batch_size=64,num_workers=16):
         ])
 
     train_dataset=torchvision.datasets.MNIST(
-        root='../data',download=False,
+        root='~/data',download=False,
         transform=transform,train=True
             )
     test_dataset=torchvision.datasets.MNIST(
-        root='../data',train=False,download=False,transform=transform
+        root='~/data',train=False,download=False,transform=transform
             )
    #数据加载器
 
@@ -55,10 +55,10 @@ def cifar10_loader(size=32,batch_size=64,num_workers=16):
             )
 
     train_dataset=torchvision.datasets.CIFAR10(
-        root='../data',train=True,download=True,transform=transform
+        root='~/data',train=True,download=True,transform=transform
             )
     test_dataset=torchvision.datasets.CIFAR10(
-        root='../data',train=False,download=True,transform=transform
+        root='~/data',train=False,download=True,transform=transform
             )
 
 
@@ -94,7 +94,7 @@ def oxfordIIIPet_loader(size=224, batch_size=64, num_workers=16):
     # 2. 关键修复：OxfordIIITPet不支持train参数，替换为官方支持的split参数
     # 训练集+验证集：使用split='trainval'（官方标准划分）
     train_dataset = torchvision.datasets.OxfordIIITPet(
-        root='../data',
+        root='~/data',
         split='trainval',  # 替换原有的train=True
         target_types='category',  # 明确指定分类任务（默认也是该值，显式声明更清晰）
         download=False,
@@ -103,7 +103,7 @@ def oxfordIIIPet_loader(size=224, batch_size=64, num_workers=16):
 
     # 测试集：使用split='test'（官方标准划分）
     test_dataset = torchvision.datasets.OxfordIIITPet(
-        root='../data',
+        root='~/data',
         split='test',  # 替换原有的train=False
         target_types='category',  # 明确指定分类任务
         download=False,
@@ -178,7 +178,10 @@ def cifar100_loader(size=32,batch_size=64,num_workers=16):
 
 
 if __name__=='__main__':
-    #train_loader,test_loader=oxfordIIIPet_loader()
-    #t,e=cifar10_loader()
+    train_loader,test_loader=oxfordIIIPet_loader()
+    print('====')
+    t,e=cifar10_loader()
+    print('===')
     t,e=cifar100_loader()
-    #t,e=mnist_loader()
+    print('======')
+    t,e=mnist_loader()
