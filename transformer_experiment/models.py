@@ -1,3 +1,38 @@
+import torch 
+import torch.nn as nn
+
+class MiniTransformer(nn.Module):
+    def __init__(self, vocab_size, embed_dim=256, num_heads=4, num_layers=4, max_seq_len=128, dropout=0.1):
+        super().__init__()
+        self.embed_dim=embed_dim
+        self.token_embeding=nn.Embedding(vocab_size,embed_dim)
+        self.position_embedding=nn.Embedding(max_seq_len,embed_dim)
+
+        self.blocks=nn.Modulelist([
+            TransformerBlock(embed_dim,num_heads,dropout) for _ in range(num_layers)
+            ])
+        self.ln_f=nn.LayerNorm(embed_dim)
+        self.head=nn.Linear(embed_dim,vocab_size,bias=False)
+
+    def _init_weights(self, module):
+        if isinstance(module, (nn.Linear, nn.Embedding)):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+        if isinstance(module, nn.Linear) and module.bias is not None:
+            torch.nn.init.zeros_(module.bias)
+
+    def forward(self,idx):
+        B,T=idx.shape
+        pos=torch.arange(0,T,dtype=torch.long,device=idx.device).unsqueeze(0) #(1,T)
+        x=self.token_embedding(idx)+self.position_embedding(pos)
+
+        for block in self.blocks:
+            x=block(x)
+
+        x=self.ln_f(x)
+        logits=self.head(x)
+        return logits
+
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
