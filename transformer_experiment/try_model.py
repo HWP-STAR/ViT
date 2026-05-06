@@ -60,3 +60,18 @@ class TransformerBlock(nn.Module):
         x = x + self.dropout(ff_out)
         x = self.ln2(x)
         return x
+
+if __name__=="__main__":
+    device=torch.device('cuda:0')
+    print(f'using device:{device}')
+    
+    vocab_size=5000
+    model=MiniTransformer(vocab_size=vocab_size).to(device)
+
+    x=torch.randint(0,vocab_size,(2,64)).to(device) #(batch_size,seq_len)
+    y=torch.randint(0,vocab_size,(2,64)).to(device)
+    
+    logits=model(x)
+    loss = nn.CrossEntropyLoss()(logits.view(-1, vocab_size), y.view(-1))
+    loss.backward()
+    print(f"测试通过，损失: {loss.item():.4f}")

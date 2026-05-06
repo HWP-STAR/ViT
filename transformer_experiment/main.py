@@ -13,7 +13,7 @@ def main():
     EMBED_DIM = 512
     NUM_HEADS = 4
     NUM_LAYERS = 16
-    MAX_SEQ_LEN = 512
+    MAX_SEQ_LEN = 128
     DROPOUT = 0.1
     LEARNING_RATE = 3e-4
     BATCH_SIZE = 64

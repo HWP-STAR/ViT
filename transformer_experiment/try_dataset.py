@@ -1,6 +1,8 @@
 from datasets import load_dataset,load_from_disk
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 print("ok")
-
+"""
 # 1. 加载一个非常轻量级的数据集
 # 对于语言建模，'wikitext-2' 是经典的入门选择
 '''
@@ -20,12 +22,10 @@ print(dataset['train'][:2])
 
 print("over")
 
-"""
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
 # 加载一个小型预训练模型和它对应的分词器
 model_name = "HuggingFaceTB/SmolLM-135M"
+
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 device=torch.device("cuda:0")
@@ -38,6 +38,19 @@ model = AutoModelForCausalLM.from_pretrained(
 
 # 确保模型在笔记本上能高效运行
 print(f'using device:{device}')
+
+#model.save_pretrained("../../data_disk/SmolLM-135M/")
+#tokenizer.save_pretrained("../../data_disk/SmolLM-135M/")
+"""
+
+device=torch.device("cuda:0")
+print(f'using {device}')
+
+mydir="../../data_disk/SmolLM-135M/"
+model=AutoModelForCausalLM.from_pretrained(mydir).to(device)
+tokenizer=AutoTokenizer.from_pretrained(mydir)
+
+print("ok")
 
 # 测试一下预训练模型
 while True:
@@ -52,4 +65,3 @@ while True:
         outputs = model.generate(**inputs, max_new_tokens=100,temperature=0.7)
         print(tokenizer.decode(outputs[0]))
 
-"""
