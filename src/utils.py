@@ -1,7 +1,9 @@
 import time
 import random
+import math
 import torch
 import numpy as np
+from torch.optim.lr_scheduler import LRScheduler
 
 
 def set_seed(seed=42):
@@ -13,7 +15,23 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = False
 
 
-def train_one_epoch(model, loader, criterion, optimizer, device, epoch):
+class WarmupCosineLR(LRScheduler):
+    def __init__(self, optimizer, warmup_epochs, total_epochs, last_epoch=-1):
+        self.warmup_epochs = warmup_epochs
+        self.total_epochs = total_epochs
+        super().__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        epoch = self.last_epoch + 1
+        if epoch <= self.warmup_epochs:
+            alpha = epoch / max(1, self.warmup_epochs)
+            return [base_lr * alpha for base_lr in self.base_lrs]
+        progress = (epoch - self.warmup_epochs) / max(1, self.total_epochs - self.warmup_epochs)
+        factor = 0.5 * (1.0 + math.cos(math.pi * progress))
+        return [base_lr * factor for base_lr in self.base_lrs]
+
+
+def train_one_epoch(model, loader, criterion, optimizer, device, epoch, warmup_steps=None, total_steps=None):
     model.train()
     total_loss = 0
     correct = 0
@@ -38,18 +56,23 @@ def train_one_epoch(model, loader, criterion, optimizer, device, epoch):
             cur_loss = total_loss / batch_idx
             cur_acc = 100. * correct / total
             elapsed = time.time() - start_time
-            print(f'Epoch {epoch} | Batch {batch_idx}/{len(loader)} | Loss: {cur_loss:.4f} | Acc: {cur_acc:.2f}% | Time: {elapsed:.2f}s')
+            lr = optimizer.param_groups[0]['lr']
+            print(f'Epoch {epoch} | Batch {batch_idx}/{len(loader)} | Loss: {cur_loss:.4f} | Acc: {cur_acc:.2f}% | LR: {lr:.2e} | Time: {elapsed:.2f}s')
 
     avg_loss = total_loss / len(loader)
     acc = 100. * correct / total
     return avg_loss, acc
 
 
-def train(model, train_loader, test_loader, criterion, optimizer, device, epochs):
+def train(model, train_loader, test_loader, criterion, optimizer, device, epochs, warmup_epochs=5):
     best_acc = 0
+    scheduler = WarmupCosineLR(optimizer, warmup_epochs, epochs)
+
     for epoch in range(1, epochs + 1):
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device, epoch)
-        print(f'====> Epoch {epoch} Train | Loss: {train_loss:.4f} | Acc: {train_acc:.2f}%')
+        scheduler.step()
+        current_lr = optimizer.param_groups[0]['lr']
+        print(f'====> Epoch {epoch} Train | Loss: {train_loss:.4f} | Acc: {train_acc:.2f}% | LR: {current_lr:.2e}')
 
         if test_loader is not None:
             test_loss, test_acc = evaluate(model, test_loader, criterion, device)

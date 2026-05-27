@@ -96,9 +96,7 @@ def collate_fn(batch):
 
 dataset = load_dataset(
         'wikitext', 'wikitext-2-raw-v1',
-        cache_dir="../../data",
-            trust_remote_code=False,
-download_mode="reuse_cache_if_exists")
+        cache_dir="../../data")
 
 train_texts = [ex['text'] for ex in dataset['train'] if ex['text'].strip()]
 valid_texts = [ex['text'] for ex in dataset['validation'] if ex['text'].strip()]
@@ -193,7 +191,7 @@ if __name__=="__main__":
     MAX_SEQ_LEN=512
     DROPOUT=0.1
     LEARNING_RATE=3e-4
-    EPOCHS=int(input("epochs:"))
+    EPOCHS=3
 
     device=torch.device('cuda:0')
     print(f'using device:{device}')
@@ -216,6 +214,8 @@ if __name__=="__main__":
         train_loss = train_epoch(model, train_loader, optimizer)
         val_loss, val_ppl = evaluate(model, valid_loader)
         print(f"Train loss: {train_loss:.4f}, Val loss: {val_loss:.4f}, Val PPL: {val_ppl:.2f}")
+
+"""        
     while True:
         prompt=input("prompt(q is quit):")
         if prompt=='q':
@@ -226,5 +226,5 @@ if __name__=="__main__":
             print(f'output:/n{output}')
 
 
-
+"""
 
